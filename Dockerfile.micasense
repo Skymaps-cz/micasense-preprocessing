@@ -1,0 +1,38 @@
+FROM --platform=linux/amd64 ubuntu:latest
+
+SHELL ["/bin/bash", "-c"]
+
+ENV LC_ALL=C.UTF-8
+ENV CONDA_DIR /opt/conda
+
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && \
+    apt-get install -yqq --no-install-recommends \
+      wget libzbar0 make perl libgl1-mesa-glx ca-certificates python3 && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN wget https://cpan.metacpan.org/authors/id/E/EX/EXIFTOOL/Image-ExifTool-12.76.tar.gz && \
+    tar -xzf Image-ExifTool-12.76.tar.gz && \
+    cd Image-ExifTool-12.76/ && \
+    perl Makefile.PL && \
+    make test && \
+    make install && \
+    cd .. && \
+    rm -Rf Image-ExifTool-12.76
+
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+    /bin/bash ~/miniconda.sh -b -p /opt/conda
+ENV PATH=$CONDA_DIR/bin:$PATH
+
+COPY . /app
+RUN source "$CONDA_DIR/etc/profile.d/conda.sh" && \
+    hash -r && \
+    conda config --set always_yes yes --set changeps1 no && \
+    conda update -q conda && \
+    conda update -n base conda && \
+    conda info -a && \
+    conda env create -f app/micasense_conda_env.yml && \
+    conda activate micasense
+
+
+WORKDIR /app

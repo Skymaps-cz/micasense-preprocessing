@@ -14,7 +14,7 @@ tqdm
 pysolar
 pyzbar
 mapboxgl
-pyexiftool<=0.4.13
+pyexiftool
 jenkspy
 rawpy
 rasterio

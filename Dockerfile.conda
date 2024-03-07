@@ -1,0 +1,25 @@
+FROM continuumio/miniconda3
+
+RUN apt-get update && \
+    apt-get install -y make software-properties-common libgl1-mesa-glx
+
+ADD https://exiftool.org/Image-ExifTool-12.77.tar.gz Image-ExifTool-12.77.tar.gz
+RUN tar xvf Image-ExifTool-12.77.tar.gz
+WORKDIR Image-ExifTool-12.77
+RUN perl Makefile.PL \
+    && make install
+
+ADD . /app
+
+RUN conda config --set always_yes yes --set changeps1 no
+RUN conda update -q conda
+RUN conda update -n base conda
+RUN conda info -a
+RUN conda env create -f /app/micasense_conda_env.yml
+# RUN conda init bash
+# RUN conda activate micasense
+
+RUN echo "conda init bash" >> $HOME/.bashrc
+RUN echo "conda activate micasense" >> $HOME/.bashrc
+
+SHELL ["/bin/bash"]
